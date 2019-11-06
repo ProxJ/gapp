@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">My Application</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="muscle_group">muscle group</string>
+    <string name="muscle_type">muscle type</string>
+    <string name="weight">weight</string>
+    <string name="comments">comments</string>
+    <string name="rest">Rest</string>
+    <string name="_00_00">00:00</string>
+    <string name="subset_type">subset type</string>
+</resources>
