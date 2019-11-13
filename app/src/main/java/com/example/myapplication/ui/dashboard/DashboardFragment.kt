@@ -7,14 +7,17 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.myapplication.DatabaseHelper
 import com.example.myapplication.DatabaseHelper.Companion.TABLE_DAYS
 import com.example.myapplication.DatabaseHelper.Companion.DATE
 import com.example.myapplication.DatabaseHelper.Companion.TIME
+import com.example.myapplication.MainActivity
 import com.example.myapplication.MainActivity.Companion.myDB
 import com.example.myapplication.R
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -42,7 +45,7 @@ class DashboardFragment : Fragment() {
 
 
         viewManager = LinearLayoutManager(this.context)
-        viewAdapter = MyAdapter(getData(), this.activity)
+        viewAdapter = MyAdapter(getData(), this)
 
 
         recyclerView = root.findViewById<RecyclerView>(R.id.rv).apply {
@@ -64,7 +67,7 @@ class DashboardFragment : Fragment() {
             val currentDate = sdf.format(Date())
             val data = arrayOf<String>(currentDate, "0")
             myDB?.doUpdate ("Insert into $TABLE_DAYS($DATE, $TIME) values (?,?);", data)
-            (viewAdapter as MyAdapter).addItem(data, 0)
+            (viewAdapter as MyAdapter).addItem(data, viewAdapter.itemCount)
 
             val intent = Intent(this.activity, ExerciseActivity::class.java)
             intent.putExtra("date", currentDate)
@@ -74,19 +77,30 @@ class DashboardFragment : Fragment() {
         return root
     }
 
-    private fun getData(): Array<Array<String>> {
+    private fun getData(): MutableList<Array<String>> {
 
-        var data = arrayOf<Array<String>>()
+        var data = mutableListOf<Array<String>>()
 
         val c: Cursor? = myDB?.doQuery("select $DATE, $TIME from $TABLE_DAYS")
 
         if (c != null) {
             while (c.moveToNext()) {
-                data += arrayOf(c.getString (c.getColumnIndex (DATE)),
-                    c.getString (c.getColumnIndex (TIME)))
+                data.add( arrayOf(c.getString (c.getColumnIndex (DATE)),
+                    c.getString (c.getColumnIndex (TIME))))
             }
             c.close()
         }
         return data
+    }
+
+    fun deleteDay(day: String, adapterPosition: Int) {
+
+        if (myDB?.deleteEntry(TABLE_DAYS, DATE, "'$day'")!!) {
+            (viewAdapter as MyAdapter).removeItem(adapterPosition)
+        } else {
+            Toast.makeText(this.context,
+                "failed to delete workout, try again later",
+                Toast.LENGTH_SHORT).show()
+        }
     }
 }

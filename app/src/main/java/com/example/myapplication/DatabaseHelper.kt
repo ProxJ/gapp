@@ -19,10 +19,10 @@ class DatabaseHelper(p: Context) : SQLiteOpenHelper(p, "$DB_NAME.db", null, DATA
     private val createTableDays =
         "CREATE TABLE IF NOT EXISTS $TABLE_DAYS($DATE datetime primary key, $TIME TIME)"
     private val createTableExercises =
-        "CREATE TABLE IF NOT EXISTS $TABLE_EXERCISE($EId INTEGER PRIMARY KEY, $MGroup varchar(20), $MType varchar(20), $EType varchar(20), $WEIGHT varchar(10), $REPS varchar(10), $RTime TIME, $COMMENT varchar(255), $DATE DATE , $TIME TIME, $SUBSET BOOL, FOREIGN KEY($DATE) REFERENCES $TABLE_DAYS($DATE))"
+        "CREATE TABLE IF NOT EXISTS $TABLE_EXERCISE($EId INTEGER PRIMARY KEY, $MGroup varchar(20), $MType varchar(20), $EType varchar(20), $WEIGHT varchar(10), $REPS varchar(10), $RTime TIME, $COMMENT varchar(255), $DATE DATE , $TIME TIME, $SUBSET BOOL, FOREIGN KEY($DATE) REFERENCES $TABLE_DAYS($DATE) ON DELETE CASCADE)"
 
     private val createTableSubsets =
-        "CREATE TABLE IF NOT EXISTS $TABLE_SUBSETS($TIME TIME not null references $TABLE_EXERCISE($TIME), $WEIGHT varchar(10) not null, $REPS varchar(10) not null, $RTime TIME, $DESCRIPTION varchar(20), primary key ($TIME, $WEIGHT, $REPS))"
+        "CREATE TABLE IF NOT EXISTS $TABLE_SUBSETS($TIME TIME not null references $TABLE_EXERCISE($TIME) ON DELETE CASCADE, $WEIGHT varchar(10) not null, $REPS varchar(10) not null, $RTime TIME, $DESCRIPTION varchar(20), primary key ($TIME, $WEIGHT, $REPS))"
 
     private val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
