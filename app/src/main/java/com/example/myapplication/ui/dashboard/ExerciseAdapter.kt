@@ -33,6 +33,11 @@ class ExerciseAdapter (private var myData: Array<ExerciseDataContainer>,
         mySubsetData += subData
         notifyItemInserted(position)
     }
+    fun removeItem(position: Int) {
+        myData.drop(position)
+        mySubsetData.drop(position)
+        notifyItemRemoved(position)
+    }
     fun updateItem(data: ExerciseDataContainer, subData: Array<ExerciseSubsetDataContainer>, position: Int) {
         this.myData[position] = data
         mySubsetData[position] = subData

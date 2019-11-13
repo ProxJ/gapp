@@ -64,14 +64,13 @@ class DatabaseHelper(p: Context) : SQLiteOpenHelper(p, "$DB_NAME.db", null, DATA
 
 
     fun doQuery(sql: String): Cursor? {
-        try {
-            return readableDatabase.rawQuery(sql, null)
+        return try {
+            readableDatabase.rawQuery(sql, null)
         } catch (mSQLException: SQLException) {
             System.err.println("-- doQuery --\n$sql")
             mSQLException.printStackTrace()
-            return null
+            null
         }
-
     }
 
     fun doUpdate(sql: String) {
@@ -102,6 +101,10 @@ class DatabaseHelper(p: Context) : SQLiteOpenHelper(p, "$DB_NAME.db", null, DATA
             m.printStackTrace(System.err)
         }
 
+    }
+
+    fun deleteEntry(dname: String, key: String,  value: String): Boolean {
+        return db.delete(dname, "$key = $value", null) > 0
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
