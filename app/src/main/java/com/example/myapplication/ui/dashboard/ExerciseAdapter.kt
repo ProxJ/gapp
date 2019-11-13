@@ -6,9 +6,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.ui.dashboard.ExerciseHolder.*
 
 
-class ExerciseAdapter (private var myData: Array<ExerciseDataContainer>,
-                       private var mySubsetData: Array<Array<ExerciseSubsetDataContainer>>,
-                       private val activity: ExerciseActivity) :
+class ExerciseAdapter(private var myData: ArrayList<ExerciseDataContainer>,
+                      private var mySubsetData: ArrayList<Array<ExerciseSubsetDataContainer>>,
+                      private val activity: ExerciseActivity) :
     RecyclerView.Adapter<ExerciseHolder>() {
 
     private lateinit var exHolder: ExerciseHolder
@@ -29,13 +29,13 @@ class ExerciseAdapter (private var myData: Array<ExerciseDataContainer>,
     override fun getItemCount() = myData.size
 
     fun addItem(data: ExerciseDataContainer, subData: Array<ExerciseSubsetDataContainer>, position: Int) {
-        this.myData += data
-        mySubsetData += subData
+        this.myData.add(data)
+        mySubsetData.add(subData)
         notifyItemInserted(position)
     }
     fun removeItem(position: Int) {
-        myData.drop(position)
-        mySubsetData.drop(position)
+        myData.removeAt(position)
+        mySubsetData.removeAt(position)
         notifyItemRemoved(position)
     }
     fun updateItem(data: ExerciseDataContainer, subData: Array<ExerciseSubsetDataContainer>, position: Int) {

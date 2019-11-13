@@ -35,6 +35,7 @@ import com.example.myapplication.DatabaseHelper.Companion.WEIGHT
 import com.example.myapplication.R
 import kotlinx.android.synthetic.main.exercise_card.view.weight
 import kotlinx.android.synthetic.main.exercise_card_edit_wr.view.*
+import kotlin.collections.ArrayList
 
 
 class ExerciseActivity  : AppCompatActivity(){
@@ -89,8 +90,8 @@ class ExerciseActivity  : AppCompatActivity(){
 
     }
 
-    private fun getSubData(data: Array<ExerciseDataContainer>): Array<Array<ExerciseSubsetDataContainer>> {
-        var subData = arrayOf<Array<ExerciseSubsetDataContainer>>()
+    private fun getSubData(data: ArrayList<ExerciseDataContainer>): ArrayList<Array<ExerciseSubsetDataContainer>> {
+        var subData = arrayListOf<Array<ExerciseSubsetDataContainer>>()
         data.forEach {
             if(it.subSets > 0) {
                 val c = myDB?.doQuery("select * from $TABLE_SUBSETS where $TIME = '${it.time}'")
@@ -105,10 +106,10 @@ class ExerciseActivity  : AppCompatActivity(){
                             c.getString(c.getColumnIndex(DESCRIPTION))
                         )
                     }
-                    subData += myData
+                    subData.add(myData)
                     c.close()
                 }
-            } else subData += arrayOf<ExerciseSubsetDataContainer>()
+            } else subData.add(arrayOf())
         }
         return subData
     }
@@ -126,13 +127,13 @@ class ExerciseActivity  : AppCompatActivity(){
         myDB?.updateDetails (TABLE_EXERCISE, params, TIME,"'${data2.time}'")
     }
 
-    private fun getData(): Array<ExerciseDataContainer> {
-        var myArray: Array<ExerciseDataContainer> = arrayOf()
+    private fun getData(): ArrayList<ExerciseDataContainer> {
+        var myArray: ArrayList<ExerciseDataContainer> = arrayListOf<ExerciseDataContainer>()
 
         val c = myDB?.doQuery("select * from $TABLE_EXERCISE where $DATE = '$date'")
         if (c != null) {
         while (c.moveToNext()) {
-            myArray += ExerciseDataContainer(
+            myArray.add( ExerciseDataContainer(
                 date,
                 c.getString(c.getColumnIndex(TIME)),
                 c.getString(c.getColumnIndex(MGroup)),
@@ -143,7 +144,7 @@ class ExerciseActivity  : AppCompatActivity(){
                 c.getString(c.getColumnIndex(RTime)),
                 c.getString(c.getColumnIndex(COMMENT)),
                 c.getInt(c.getColumnIndex(SUBSET))
-            )
+            ))
         }
             c.close()
         }
@@ -270,8 +271,7 @@ class ExerciseActivity  : AppCompatActivity(){
     }
 
     private fun deleteWorkout(time: String, pos: Int) {
-        if (myDB?.deleteEntry(TABLE_SUBSETS, TIME, "'$time'")!! &&
-            myDB?.deleteEntry(TABLE_EXERCISE, TIME, "'$time'")!!) {
+        if (myDB?.deleteEntry(TABLE_EXERCISE, TIME, "'$time'")!!) {
             (viewAdapter as ExerciseAdapter).removeItem(pos)
         } else {
             Toast.makeText(this,
