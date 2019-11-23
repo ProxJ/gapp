@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:enabled="false"
+    android:orientation="horizontal">
+
+    <Spinner
+        android:id="@+id/view_spinner"
+        android:layout_gravity="start"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"/>
+
+
+<!--    <AutoCompleteTextView-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:imeOptions="actionSearch"-->
+<!--        android:ems="5"-->
+<!--        android:hint="@string/search_hint"-->
+<!--        android:inputType="textAutoComplete|textAutoCorrect"-->
+<!--        android:layout_height="wrap_content"/>-->
+
+    <SearchView
+        android:id="@+id/search_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:gravity="end"
+        android:hint="@string/search_hint" />
+
+</LinearLayout>

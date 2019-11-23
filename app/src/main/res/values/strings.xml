@@ -12,4 +12,27 @@
     <string name="subset_type">subset type</string>
     <string name="add_exercise">Add Exercise</string>
     <string name="delete">DELETE</string>
+    <string name="app_label">Workouts</string>
+    <string name="search_hint">Search workouts</string>
+
+    <string-array name="vs_arr">
+        <item>Days</item>
+        <item>Weeks</item>
+        <item>Month</item>
+    </string-array>
+
+    <string-array name="ss_arr">
+        <item>Day</item>
+        <item>Weight</item>
+        <item>Reps</item>
+        <item>Time</item>
+        <item>Volume</item>
+    </string-array>
+
+    <string-array name="ws_arr">
+        <item>Muscle Type</item>
+        <item>Muscle Group</item>
+        <item>Exercise Type</item>
+        <item>Other</item>
+    </string-array>
 </resources>

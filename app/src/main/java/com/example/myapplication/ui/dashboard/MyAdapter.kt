@@ -7,8 +7,6 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 
 import androidx.recyclerview.widget.RecyclerView
-import com.example.myapplication.DatabaseHelper
-import com.example.myapplication.MainActivity
 import com.example.myapplication.R
 
 
@@ -72,8 +70,8 @@ class MyAdapter(private var myData: MutableList<Array<String>>, private val acti
 
     fun addItem(data: Array<String>, position: Int) {
         this.myData.add(data)
-        notifyDataSetChanged()
-//        notifyItemInserted(position)
+//        notifyDataSetChanged()
+        notifyItemInserted(position)
     }
     fun removeItem(position: Int) {
         myData.removeAt(position)

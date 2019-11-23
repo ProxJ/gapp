@@ -1,28 +1,31 @@
 package com.example.myapplication.ui.dashboard
 
+import android.app.SearchManager
+import android.content.Context
 import android.content.Intent
 import android.database.Cursor
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
+import android.widget.*
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.myapplication.DatabaseHelper
-import com.example.myapplication.DatabaseHelper.Companion.TABLE_DAYS
 import com.example.myapplication.DatabaseHelper.Companion.DATE
+import com.example.myapplication.DatabaseHelper.Companion.TABLE_DAYS
 import com.example.myapplication.DatabaseHelper.Companion.TIME
-import com.example.myapplication.MainActivity
 import com.example.myapplication.MainActivity.Companion.myDB
 import com.example.myapplication.R
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.text.SimpleDateFormat
 import java.util.*
+
 
 class DashboardFragment : Fragment() {
 
@@ -74,12 +77,100 @@ class DashboardFragment : Fragment() {
             startActivity(intent)
         }
 
+        setActionBar()
+
         return root
+    }
+
+    private fun setActionBar() {
+
+
+
+        val actionBarLayout = layoutInflater.inflate(
+            R.layout.action_bar, null) as ViewGroup
+        val actionBar = (activity as AppCompatActivity).supportActionBar
+        actionBar?.setDisplayHomeAsUpEnabled(false)
+        actionBar?.setDisplayShowTitleEnabled(false)
+        actionBar?.setDisplayShowCustomEnabled(true)
+        actionBar?.customView = actionBarLayout
+
+        val spinner: Spinner = actionBarLayout.findViewById(R.id.view_spinner)
+// Create an ArrayAdapter using the string array and a default spinner layout
+        ArrayAdapter.createFromResource(
+            this.context!!,
+            R.array.vs_arr,
+            android.R.layout.simple_spinner_item
+        ).also { adapter ->
+            // Specify the layout to use when the list of choices appears
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            // Apply the adapter to the spinner
+            spinner.adapter = adapter
+        }
+
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+
+            }
+
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+
+            }
+
+        }
+
+//        val adapter: ArrayAdapter<String> = SpinnerArrayAdapter(
+//            context!!,
+//            android.R.layout.simple_spinner_dropdown_item,
+//            android.R.id.text1,
+//            resources.getStringArray(R.array.vs_arr)
+//        )
+//        spinner.adapter = adapter
+
+        setupSearch()
+    }
+
+    private fun setupSearch() {
+
+        if (Intent.ACTION_SEARCH == activity!!.intent.action) {
+            activity!!.intent.getStringExtra(SearchManager.QUERY).also { query ->
+                Log.d("Query", "Search was clicked")
+                println("Search was clicked")
+            }
+        }
+        activity?.setDefaultKeyMode(AppCompatActivity.DEFAULT_KEYS_SEARCH_LOCAL)
+
+        val searchBar: SearchView? = activity?.findViewById(R.id.search_bar)
+        val query = searchBar?.query
+        println(query)
+
+        searchBar?.setOnQueryTextFocusChangeListener { _ , hasFocus ->
+            if (hasFocus) {
+                Log.d("Query", "Search was focus")
+            } else {
+                searchBar.isIconified = true
+            }
+        }
+        searchBar?.setOnQueryTextListener (object: SearchView.OnQueryTextListener {
+            override fun onQueryTextChange(newText: String?): Boolean {
+                searchWorkouts(query)
+                return false
+            }
+
+            override fun onQueryTextSubmit(query: String): Boolean {
+                return false
+            }
+
+        })
+        searchBar?.suggestionsAdapter
+    }
+
+    private fun searchWorkouts(query: CharSequence?) {
+        if (query!=null) Log.d("Query", query.toString())
     }
 
     private fun getData(): MutableList<Array<String>> {
 
-        var data = mutableListOf<Array<String>>()
+        val data = mutableListOf<Array<String>>()
 
         val c: Cursor? = myDB?.doQuery("select $DATE, $TIME from $TABLE_DAYS")
 
@@ -101,6 +192,38 @@ class DashboardFragment : Fragment() {
             Toast.makeText(this.context,
                 "failed to delete workout, try again later",
                 Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    class SpinnerArrayAdapter(
+        context: Context,
+        private val resourceLayout: Int,
+        textViewResourceId: Int,
+        units: Array<String>
+    ) :
+        ArrayAdapter<String>(context, resourceLayout, textViewResourceId, units) {
+        private var inflater: LayoutInflater? = null
+        override fun getView(
+            position: Int,
+            convertView: View?,
+            parent: ViewGroup
+        ): View {
+            val view: View = convertView ?: inflater!!.inflate(resourceLayout, parent, false)
+            val unit = getItem(position)!!
+            val textView = view as TextView
+            textView.text = getAbbreviation(unit)
+            return view
+        }
+
+        private fun getAbbreviation(unit: String): String {
+            val units = unit.split(" ")
+            var abbr = ""
+            units.forEach { abbr += it[0] }
+            return abbr
+        }
+
+        init {
+            inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater?
         }
     }
 }
