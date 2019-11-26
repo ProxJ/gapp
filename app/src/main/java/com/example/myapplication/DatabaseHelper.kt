@@ -6,6 +6,7 @@ import android.database.Cursor
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.database.sqlite.SQLiteQueryBuilder
 
 import java.io.File
 import java.text.SimpleDateFormat
@@ -24,37 +25,21 @@ class DatabaseHelper(p: Context) : SQLiteOpenHelper(p, "$DB_NAME.db", null, DATA
     private val createTableSubsets =
         "CREATE TABLE IF NOT EXISTS $TABLE_SUBSETS($TIME TIME not null references $TABLE_EXERCISE($TIME) ON DELETE CASCADE, $WEIGHT varchar(10) not null, $REPS varchar(10) not null, $RTime TIME, $DESCRIPTION varchar(20), primary key ($TIME, $WEIGHT, $REPS))"
 
-    private val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    private val createTableDaysFTS =
+        "CREATE VIRTUAL TABLE IF NOT EXISTS $TABLE_DAYS USING fts3($DATE, $TIME)"
+    private val createTableExercisesFTS =
+        "CREATE VIRTUAL TABLE IF NOT EXISTS $TABLE_EXERCISE USING fts3($MGroup, $MType, $EType, $WEIGHT, $REPS, $RTime, $COMMENT, $DATE, $TIME)"
 
-    val now: String
-        get() = sdf.format(java.util.Date())
+    private val createTableSubsetsFTS =
+        "CREATE VIRTUAL TABLE IF NOT EXISTS $TABLE_SUBSETS USING fts3($TIME, $WEIGHT, $REPS, $RTime, $DESCRIPTION)"
 
-    /* Open the database object in "read" mode. *//* Get length of database file. */
-    val size: Long
-        get() {
-            val db = readableDatabase
-            val dbPath = db.path
-            val dbFile = File(dbPath)
 
-            return dbFile.length()
-        }
-    val db: SQLiteDatabase
+    private val db: SQLiteDatabase
         get() = writableDatabase
-
-    fun doQuery(sql: String, params: Array<String>): Cursor? {
-        try {
-            return readableDatabase.rawQuery(sql, params)
-        } catch (mSQLException: SQLException) {
-            System.err.println("-- doQuery --\n$sql")
-            mSQLException.printStackTrace(System.err)
-            return null
-        }
-
-    }
 
     fun doUpdate(sql: String, params: Array<String>) {
         try {
-            writableDatabase.execSQL(sql, params)
+            return writableDatabase.execSQL(sql, params)
         } catch (mSQLException: SQLException) {
             System.err.println("-- doUpdate --\n$sql")
             mSQLException.printStackTrace(System.err)
@@ -62,6 +47,29 @@ class DatabaseHelper(p: Context) : SQLiteOpenHelper(p, "$DB_NAME.db", null, DATA
 
     }
 
+    fun doInsert(table: String, columns: Array<String>, values: Array<String>): Long {
+        val params = ContentValues()
+        for (i in columns.indices) params.put(columns[i], values[i])
+        return db.insert(table, null, params)
+    }
+
+    fun doQueryMatch(
+        fts_table: String,
+        field: String, query: String,
+        columns: Array<String>?,
+        group: String?,
+        having: String?,
+        sort_order: String?): Cursor? {
+        val selection = "$field MATCH ?"
+        val selectionArgs = arrayOf("$query*")
+
+        return SQLiteQueryBuilder().run {
+            tables = fts_table
+            query(readableDatabase,
+                columns, selection, selectionArgs, group, having, sort_order)
+        }
+
+    }
 
     fun doQuery(sql: String): Cursor? {
         return try {
@@ -73,29 +81,9 @@ class DatabaseHelper(p: Context) : SQLiteOpenHelper(p, "$DB_NAME.db", null, DATA
         }
     }
 
-    fun doUpdate(sql: String) {
-        try {
-            this.writableDatabase.execSQL(sql)
-        } catch (mSQLException: SQLException) {
-            System.err.println("-- doUpdate --\n$sql")
-            mSQLException.printStackTrace(System.err)
-        }
-
-    }
-
-    override fun onCreate(db: SQLiteDatabase) {
-
-        db.execSQL(createTableDays)
-
-        db.execSQL(createTableExercises)
-
-        db.execSQL(createTableSubsets)
-
-    }
-
     fun updateDetails(table: String, values: ContentValues, field: String, identifier: String) {
         try {
-            this.writableDatabase.update(table, values, "$field = $identifier", null)
+            writableDatabase.update(table, values, "$field = $identifier", null)
         } catch (m: SQLException) {
             System.err.println("-- updateDetails --\n")
             m.printStackTrace(System.err)
@@ -103,14 +91,30 @@ class DatabaseHelper(p: Context) : SQLiteOpenHelper(p, "$DB_NAME.db", null, DATA
 
     }
 
-    fun deleteEntry(dname: String, key: String,  value: String): Boolean {
-        return db.delete(dname, "$key = $value", null) > 0
+    fun deleteEntry(table: String, key: String,  value: String): Boolean {
+        return db.delete(table, "$key = $value", null) > 0
+    }
+
+    override fun onCreate(db: SQLiteDatabase) {
+
+        db.execSQL(createTableDays)
+        db.execSQL(createTableExercises)
+        db.execSQL(createTableSubsets)
+
+        db.execSQL(createTableDaysFTS)
+        db.execSQL(createTableExercisesFTS)
+        db.execSQL(createTableSubsetsFTS)
+
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL("DROP TABLE IF EXISTS $TABLE_DAYS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_EXERCISE")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_SUBSETS")
+
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_DAYS_FTS")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_EXERCISE_FTS")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_SUBSETS_FTS")
 
         onCreate(db)
     }
@@ -123,6 +127,9 @@ class DatabaseHelper(p: Context) : SQLiteOpenHelper(p, "$DB_NAME.db", null, DATA
         internal const val TABLE_DAYS = "days"
         internal const val TABLE_EXERCISE = "exercises"
         internal const val TABLE_SUBSETS = "subsets"
+        internal const val TABLE_DAYS_FTS = "days"
+        internal const val TABLE_EXERCISE_FTS = "exercises"
+        internal const val TABLE_SUBSETS_FTS = "subsets"
 
         //column names
         const val MGroup = "muscle_group"

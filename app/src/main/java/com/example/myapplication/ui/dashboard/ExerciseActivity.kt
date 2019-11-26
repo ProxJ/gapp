@@ -330,15 +330,4 @@ class ExerciseActivity  : AppCompatActivity(){
         }
     }
 
-    private fun updateExerciseDetails(data: ExerciseDataContainer) {
-        val params = ContentValues()
-        params.put(MGroup, data.mGroup)
-        params.put(MType, data.mType)
-        params.put(EType, data.eType)
-        params.put(WEIGHT, data.weight)
-        params.put(REPS, data.reps)
-        params.put(SUBSET, data.subSets)
-        params.put(COMMENT, data.comment)
-        myDB?.updateDetails(TABLE_EXERCISE, params, TIME, "'${data.time}'")
-    }
 }

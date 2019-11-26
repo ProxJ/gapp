@@ -84,8 +84,6 @@ class DashboardFragment : Fragment() {
 
     private fun setActionBar() {
 
-
-
         val actionBarLayout = layoutInflater.inflate(
             R.layout.action_bar, null) as ViewGroup
         val actionBar = (activity as AppCompatActivity).supportActionBar
@@ -96,16 +94,14 @@ class DashboardFragment : Fragment() {
 
         val spinner: Spinner = actionBarLayout.findViewById(R.id.view_spinner)
 // Create an ArrayAdapter using the string array and a default spinner layout
-        ArrayAdapter.createFromResource(
-            this.context!!,
-            R.array.vs_arr,
-            android.R.layout.simple_spinner_item
-        ).also { adapter ->
-            // Specify the layout to use when the list of choices appears
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            // Apply the adapter to the spinner
-            spinner.adapter = adapter
-        }
+        setupSpinner(spinner)
+
+        setupSearch(spinner)
+    }
+
+    private fun setupSpinner(spinner: Spinner) {
+
+        setSpinnerToShowViewAdapter(spinner)
 
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
             override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -118,41 +114,57 @@ class DashboardFragment : Fragment() {
 
         }
 
-//        val adapter: ArrayAdapter<String> = SpinnerArrayAdapter(
-//            context!!,
-//            android.R.layout.simple_spinner_dropdown_item,
-//            android.R.id.text1,
-//            resources.getStringArray(R.array.vs_arr)
-//        )
-//        spinner.adapter = adapter
-
-        setupSearch()
     }
 
-    private fun setupSearch() {
+    private fun setSpinnerToShowWorkOuts(spinner: Spinner) {
+        val adapter: ArrayAdapter<String> = SpinnerArrayAdapter(
+            context!!,
+            android.R.layout.simple_spinner_dropdown_item,
+            android.R.id.text1,
+            resources.getStringArray(R.array.ws_arr)
+        )
+        spinner.adapter = adapter
+    }
+
+    private fun setSpinnerToShowViewAdapter(spinner: Spinner) {
+        ArrayAdapter.createFromResource(
+            this.context!!,
+            R.array.vs_arr,
+            android.R.layout.simple_spinner_item
+        ).also { adapter ->
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            spinner.adapter = adapter
+        }
+    }
+
+    private fun setupSearch(spinner: Spinner) {
+
 
         if (Intent.ACTION_SEARCH == activity!!.intent.action) {
-            activity!!.intent.getStringExtra(SearchManager.QUERY).also { query ->
-                Log.d("Query", "Search was clicked")
-                println("Search was clicked")
-            }
+            val query = activity!!.intent.getStringExtra(SearchManager.QUERY)
+            val c = myDB?.doQueryMatch("",query, null)
+            //process Cursor and display results
         }
-        activity?.setDefaultKeyMode(AppCompatActivity.DEFAULT_KEYS_SEARCH_LOCAL)
 
         val searchBar: SearchView? = activity?.findViewById(R.id.search_bar)
         val query = searchBar?.query
         println(query)
 
+        var selectedViewPosition = -1
         searchBar?.setOnQueryTextFocusChangeListener { _ , hasFocus ->
             if (hasFocus) {
-                Log.d("Query", "Search was focus")
+                selectedViewPosition = spinner.selectedItemPosition
+                setSpinnerToShowWorkOuts(spinner)
             } else {
                 searchBar.isIconified = true
+                setSpinnerToShowViewAdapter(spinner)
+                spinner.setSelection(if (selectedViewPosition>=0) selectedViewPosition else 0)
+                selectedViewPosition = -1
             }
         }
         searchBar?.setOnQueryTextListener (object: SearchView.OnQueryTextListener {
             override fun onQueryTextChange(newText: String?): Boolean {
-                searchWorkouts(query)
+                searchWorkouts(query, spinner)
                 return false
             }
 
@@ -164,8 +176,11 @@ class DashboardFragment : Fragment() {
         searchBar?.suggestionsAdapter
     }
 
-    private fun searchWorkouts(query: CharSequence?) {
-        if (query!=null) Log.d("Query", query.toString())
+    private fun searchWorkouts(query: CharSequence?, spinner: Spinner) {
+        if (query!=null) {
+            Log.d("Query", spinner.selectedItem.toString())
+
+        }
     }
 
     private fun getData(): MutableList<Array<String>> {
@@ -215,13 +230,15 @@ class DashboardFragment : Fragment() {
             return view
         }
 
-        private fun getAbbreviation(unit: String): String {
-            val units = unit.split(" ")
-            var abbr = ""
-            units.forEach { abbr += it[0] }
-            return abbr
-        }
+        companion object {
+            fun getAbbreviation(unit: String): String {
+                val units = unit.split(" ")
+                var abbr = ""
+                units.forEach { abbr += it[0] }
+                return abbr
+            }
 
+        }
         init {
             inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater?
         }
